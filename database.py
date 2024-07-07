@@ -6,12 +6,12 @@ import datetime
 import streamlit as st
 import os
 
-# Fetch database connection details from environment variables
-db_username = os.getenv('DB_USERNAME')
-db_password = os.getenv('DB_PASSWORD')
-db_host = os.getenv('DB_HOST')
-db_port = os.getenv('DB_PORT', '5432')
-db_name = os.getenv('DB_NAME')
+# Fetch database connection details from Streamlit secrets
+db_username = st.secrets["db_username"]
+db_password = st.secrets["db_password"]
+db_host = st.secrets["db_host"]
+db_port = st.secrets["db_port"]
+db_name = st.secrets["db_name"]
 
 # Create the database connection URL
 DATABASE_URL = f"postgresql+psycopg2://{db_username}:{db_password}@{db_host}:{db_port}/{db_name}"
