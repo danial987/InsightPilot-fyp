@@ -1,10 +1,9 @@
-flask
 streamlit
 pandas
 numpy
 openpyxl
 requests
-psycopg2
+psycopg2-binary
 sqlalchemy
 st_pages
 plotly
