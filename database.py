@@ -6,6 +6,7 @@ import datetime
 import streamlit as st
 
 # Database configuration
+# Database configuration
 DATABASE_URL = "postgresql://new_username:new_password@localhost/insightpilot"
 
 # Set up the database connection

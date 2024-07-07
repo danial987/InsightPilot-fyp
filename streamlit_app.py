@@ -19,8 +19,8 @@ if 'show_distinct_values' not in st.session_state:
     st.session_state.show_distinct_values = False
 if 'show_basic_statistics' not in st.session_state:
     st.session_state.show_basic_statistics = False
-if 'show_profile_report' not in st.session_state:
-    st.session_state.show_profile_report = False
+# if 'show_profile_report' not in st.session_state:
+#     st.session_state.show_profile_report = False
 
 
 
