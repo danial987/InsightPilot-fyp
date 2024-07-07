@@ -4,10 +4,17 @@ from sqlalchemy import create_engine, Table, Column, Integer, String, MetaData, 
 from sqlalchemy.orm import sessionmaker
 import datetime
 import streamlit as st
+import os
 
-# Database configuration
-# Database configuration
-DATABASE_URL = "postgresql://new_username:new_password@localhost/insightpilot"
+# Fetch database connection details from environment variables
+db_username = os.getenv('DB_USERNAME')
+db_password = os.getenv('DB_PASSWORD')
+db_host = os.getenv('DB_HOST')
+db_port = os.getenv('DB_PORT', '5432')
+db_name = os.getenv('DB_NAME')
+
+# Create the database connection URL
+DATABASE_URL = f"postgresql+psycopg2://{db_username}:{db_password}@{db_host}:{db_port}/{db_name}"
 
 # Set up the database connection
 engine = create_engine(DATABASE_URL)
