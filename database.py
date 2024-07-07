@@ -7,11 +7,13 @@ import streamlit as st
 import os
 
 # Fetch database connection details from Streamlit secrets
-username = st.secrets["username"]
-password = st.secrets["password"]
-host = st.secrets["host"]
-port = st.secrets["port"]
-database = st.secrets["database"]
+db_config = st.secrets["connections"]["postgresql"]
+
+username = db_config["username"]
+password = db_config["password"]
+host = db_config["host"]
+port = db_config["port"]
+database = db_config["database"]
 
 # Create the database connection URL
 DATABASE_URL = f"postgresql+psycopg2://{username}:{password}@{host}:{port}/{database}"
