@@ -1,0 +1,38 @@
+# Title of the document
+title: "Pandas Profiling Report"
+
+# Metadata
+dataset:
+  description: ""
+  creator: ""
+  author: ""
+  copyright_holder: ""
+  copyright_year: ""
+  url: ""
+
+html:
+  # Minify the html
+  minify_html: true
+
+  # Offline support
+  use_local_assets: true
+
+  # If true, single file, else directory with assets
+  inline: true
+
+  # Show navbar
+  navbar_show: true
+
+  # Assets prefix if inline = true
+  assets_prefix: null
+
+  # Styling options for the HTML report
+  style:
+    theme: null
+    logo: ""
+    primary_colors:
+      - "#9645ff"
+      - "#e41a1c"
+      - "#4daf4a"
+
+  full_width: false

@@ -1,0 +1,10 @@
+flask
+streamlit
+pandas
+numpy
+openpyxl
+requests
+psycopg2
+sqlalchemy
+st_pages
+plotly

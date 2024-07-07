@@ -1,0 +1,307 @@
+/* Hide Streamlit menu and footer */
+#MainMenu,
+header {
+  visibility: hidden;
+}
+
+/* Custom button style with gradient and hover effect */
+/* .stButton button {
+  background-image: linear-gradient(to right, #9645ff, #5a30cc);
+  color: white;
+  border-radius: 12px;
+  padding: 10px 24px;
+  border: none;
+  font-size: 16px;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.stButton button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  color: white;
+}
+
+/* Style the file uploader button */
+/* .css-1cpxqw2 .st-emotion-cache-7ym5gk button {
+  background-image: linear-gradient(to right, #9645ff, #5a30cc) !important;
+  color: white !important;
+  border-radius: 12px !important;
+  padding: 10px 24px !important;
+  border: none !important;
+  font-size: 16px !important;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.css-1cpxqw2 .st-emotion-cache-7ym5gk button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2) !important;
+} */
+*/
+
+/* Adjust the page background color and add a subtle texture */
+.stApp {
+  /* background-color: #f4f4f9; */
+  /* background-image: url('data:image/png;base64,...'); Add your base64 texture */
+  /* padding: 2rem; */
+  max-width: 1400px;
+}
+
+/* Container styling with refined shadow */
+.main .block-container {
+  max-width: 1200px;
+  padding: 2rem;
+  /* margin: auto; */
+  /* background-color: #ffffff; */
+  border-radius: 12px;
+  /* box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1); */
+}
+
+/* Global font styling with Google Fonts */
+body {
+  font-family: "Poppins", sans-serif;
+  color: #333333;
+}
+
+/* Enhance all headers with spacing and font weight  */
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  margin-bottom: 0.5rem;
+  font-weight: 600;
+}
+
+/* Enhanced link styling */
+a {
+  text-decoration: none;
+  color: #9645ff;
+}
+
+a:hover {
+  text-decoration: underline;
+  color: #7525cc;
+}
+
+/* Recent files enhanced visual styling */
+.recent-files {
+  margin-top: 2rem;
+}
+
+.recent-file-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  /* background-color: #eeeeee; */
+  padding: 10px 20px;
+  border-radius: 8px;
+  margin-bottom: 1rem;
+  font-weight: bold;
+}
+
+.recent-file-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  /* background-color: #ffffff; */
+  padding: 1px 20px;
+  border-radius: 8px;
+  box-shadow: 0 0.5px 0px rgba(0, 0, 0, 0.1);
+  margin-bottom: 2rem;
+  margin-top: 1rem;
+  /* transition: transform 0.3s ease, box-shadow 0.3s ease; */
+}
+
+/* .recent-file-item:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+} */
+
+.recent-file-item button {
+  background-color: #ff4d4d;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 5px 10px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.recent-file-item button:hover {
+  background-color: #cc0000;
+  color: white;
+}
+
+/* Adjust spacing and layout for better readability */
+.recent-file-details {
+  flex-grow: 1;
+  padding-left: 1rem;
+}
+
+/* .st-emotion-cache-nziaof {
+  margin: .5rem 1rem;
+  
+}
+
+.st-emotion-cache-pkbazv{
+  margin: .5rem 1rem;
+} */
+
+.button {
+  display: inline-flex;
+  -webkit-box-align: center;
+  align-items: center;
+  -webkit-box-pack: center;
+  justify-content: center;
+  font-weight: 400;
+  padding: 0.25rem 0.75rem;
+  border-radius: 0.5rem;
+  min-height: 38.4px;
+  margin: 0px;
+  line-height: 1.6;
+  color: inherit;
+  width: auto;
+  user-select: none;
+  background-color: rgb(255, 255, 255);
+  border: 1px solid rgba(49, 51, 63, 0.2);
+}
+
+/* .button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  color: white;
+}
+
+ */
+
+.st-b9 {
+  padding-top: 7px;
+  padding-bottom: 7px;
+  margin-bottom: 20px;
+}
+
+.st-emotion-cache-1gwi74i {
+  padding-top: 2rem;
+  padding-bottom: 2rem;
+  padding-left: 1.5rem;
+  padding-right: 1.5rem;
+}
+
+.css-1v3fvcr,
+.css-1lypyzk {
+  display: none;
+}
+
+.st-emotion-cache-13ecjqk {
+  margin-bottom: 30px;
+}
+
+img {
+  width: 200px;
+}
+
+.st-emotion-cache-5k5r22:active {
+  padding: 5px;
+}
+.st-emotion-cache-5k5r22 {
+  padding: 5px;
+}
+
+.st-emotion-cache-94ux81 {
+  padding: 5px;
+}
+.st-emotion-cache-94ux81:active {
+  padding: 5px;
+}
+
+.st-emotion-cache-yinll1 svg {
+  stroke: rgba(49, 51, 63, 0.6);
+  stroke-width: 2.25;
+  pointer-events: none;
+  visibility: hidden;
+}
+
+.st-emotion-cache-gi0tri {
+  margin-left: 0.5rem;
+  display: inline-flex;
+  gap: 0.5rem;
+  vertical-align: middle;
+  pointer-events: none;
+}
+
+.dropdown {
+  position: relative;
+  display: inline-block;
+}
+
+.dropdown-content {
+  display: none;
+  position: absolute;
+  background-color: #f9f9f9;
+  min-width: 160px;
+  box-shadow: 0px 8px 16px 0px rgba(0, 0, 0, 0.2);
+  z-index: 1;
+}
+
+.dropdown-content a {
+  color: black;
+  padding: 12px 16px;
+  text-decoration: none;
+  display: block;
+}
+
+.dropdown-content a:hover {
+  background-color: #f1f1f1;
+}
+
+.show {
+  display: block;
+}
+
+.footer-text .container-fluid {
+  visibility: hidden;
+}
+
+.nav-pills > li.active > a,
+.nav-pills > li.active > a:focus,
+.nav-pills > li.active > a:hover {
+  color: #fff;
+  background-color: #9645ff;
+}
+
+.nav-pills > li > a {
+  border-radius: 4px;
+}
+.nav > li > a {
+  position: relative;
+  display: block;
+  padding: 10px 15px;
+  color: #31333f;
+}
+a {
+  color: #31333f;
+  text-decoration: none;
+}
+
+.nav-pills > li.active > a,
+.nav-pills > li.active > a:focus,
+.nav-pills > li.active > a:hover {
+  color: #fff;
+  background-color: rgb(150, 69, 255);
+}
+
+a {
+  color: rgb(150, 69, 255);
+  text-decoration: none;
+}
+a:hover {
+  color: rgb(150, 69, 255);
+  text-decoration: none;
+}
+
+.st-emotion-cache-5drf04 {
+  height: auto;
+  max-width: 12rem;
+  margin: 0.25rem 0.5rem 0.25rem 0px;
+}
