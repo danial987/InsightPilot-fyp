@@ -23,13 +23,20 @@ def is_hashable(val):
     return True
 
 
+def make_hashable(df):
+    return df.applymap(lambda x: tuple(x) if isinstance(x, list) else x)
+
+
 def generate_dataset_description(df):
     num_variables = df.shape[1]
     num_observations = df.shape[0]
     numerical_features = df.select_dtypes(include=[np.number]).columns.tolist()
     categorical_features = df.select_dtypes(include=['object']).columns.tolist()
     missing_cells = df.isnull().sum().sum()
-    duplicate_rows = df.duplicated().sum()
+    
+    # Convert non-hashable types to hashable types
+    hashable_df = make_hashable(df)
+    duplicate_rows = hashable_df.duplicated().sum()
 
     description = f"""
     The dataset contains {num_variables} variables and {num_observations} observations.
@@ -43,18 +50,15 @@ def generate_dataset_description(df):
     return description
 
 
-
 class DatasetSummary:
     @staticmethod
     def display_summary(df, dataset_name):
         # Generate and display dataset description
-
         description = generate_dataset_description(df)
 
         with st.expander("Dataset"):
             st.write(f"### Dataset: {dataset_name}")
             st.write(description)
-
 
         # Identify features
         categorical_features = df.select_dtypes(include=['object']).columns.tolist()
@@ -82,7 +86,7 @@ class DatasetSummary:
                 num_variables = df.shape[1]
                 num_observations = df.shape[0]
                 missing_cells = df.isnull().sum().sum()
-                hashable_df = df.applymap(lambda x: tuple(x) if isinstance(x, list) else x)
+                hashable_df = make_hashable(df)
                 duplicate_rows = hashable_df[hashable_df.duplicated()].shape[0]
                 total_size = calculate_memory_usage(df)
                 avg_record_size = total_size / num_observations
@@ -342,25 +346,16 @@ def dataset_summary_page():
         df = st.session_state.df
         dataset_name = st.session_state.dataset_name
 
-
-
         DatasetSummary.display_summary(df, dataset_name)
-
-    
-
-
 
         col1, col2 = st.columns([5.4, 1])
         with col1:
-
             if st.button("Back to Upload", key="back_to_upload"):
                 st.session_state.uploaded = False
                 st.switch_page("pages/dataset_upload.py")
         with col2:
             if st.button("Go to Preprocessing", key="go_to_preprocessing"):
-               st.switch_page("pages/data_preprocessing.py")
-
-    
+                st.switch_page("pages/data_preprocessing.py")
 
 
 dataset_summary_page()

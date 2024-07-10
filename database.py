@@ -18,8 +18,6 @@ database = db_config["database"]
 # Create the database connection URL
 DATABASE_URL = f"postgresql+psycopg2://{username}:{password}@{host}:{port}/{database}"
 
-
-
 # Set up the database connection
 engine = create_engine(DATABASE_URL)
 metadata = MetaData()
@@ -35,11 +33,17 @@ class Dataset:
                 Column('file_size', Integer, nullable=False),
                 Column('upload_date', DateTime, default=datetime.datetime.utcnow),
                 Column('data', LargeBinary, nullable=False),
+                Column('last_accessed', DateTime, default=datetime.datetime.utcnow),
                 extend_existing=True
             )
             metadata.create_all(engine)
         else:
             self.datasets = metadata.tables['datasets']
+            if 'last_accessed' not in self.datasets.c:
+                with engine.connect() as conn:
+                    conn.execute('ALTER TABLE datasets ADD COLUMN last_accessed TIMESTAMP DEFAULT NOW()')
+                metadata.reflect(bind=engine)
+
         self.Session = sessionmaker(bind=engine)
 
     def save_to_database(self, file_name, file_format, file_size, data):
@@ -47,14 +51,15 @@ class Dataset:
             name=file_name,
             file_format=file_format,
             file_size=file_size,
-            data=data
+            data=data,
+            last_accessed=datetime.datetime.utcnow()
         )
         with engine.connect() as conn:
             conn.execute(insert_statement)
 
     def fetch_datasets(self):
         with engine.connect() as conn:
-            query = self.datasets.select().order_by(self.datasets.c.upload_date.desc())
+            query = self.datasets.select().order_by(self.datasets.c.last_accessed.desc())
             result = conn.execute(query)
             return result.fetchall()
 
@@ -74,6 +79,18 @@ class Dataset:
             query = self.datasets.select().where(self.datasets.c.id == dataset_id)
             result = conn.execute(query)
             return result.fetchone()
+
+    def update_last_accessed(self, dataset_id):
+        with engine.connect() as conn:
+            update_statement = self.datasets.update().where(self.datasets.c.id == dataset_id).values(
+                last_accessed=datetime.datetime.utcnow()
+            )
+            conn.execute(update_statement)
+
+    def rename_dataset(self, dataset_id, new_name):
+        with engine.connect() as conn:
+            update_statement = self.datasets.update().where(self.datasets.c.id == dataset_id).values(name=new_name)
+            conn.execute(update_statement)
 
     @staticmethod
     def try_parsing_csv(uploaded_file):

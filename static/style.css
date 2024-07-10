@@ -43,12 +43,12 @@ header {
   /* background-color: #f4f4f9; */
   /* background-image: url('data:image/png;base64,...'); Add your base64 texture */
   /* padding: 2rem; */
-  max-width: 1400px;
+  max-width: 1300px;
 }
 
 /* Container styling with refined shadow */
 .main .block-container {
-  max-width: 1200px;
+  max-width: 1300px;
   padding: 2rem;
   /* margin: auto; */
   /* background-color: #ffffff; */
@@ -304,4 +304,18 @@ a:hover {
   height: auto;
   max-width: 12rem;
   margin: 0.25rem 0.5rem 0.25rem 0px;
+}
+
+.st-emotion-cache-ue6h4q {
+  font-size: 0px;
+  color: rgb(49, 51, 63);
+  display: flex;
+  visibility: visible;
+  margin-bottom: 0px;
+  height: auto;
+  min-height: 0rem;
+  vertical-align: middle;
+  flex-direction: row;
+  -webkit-box-align: center;
+  align-items: center;
 }

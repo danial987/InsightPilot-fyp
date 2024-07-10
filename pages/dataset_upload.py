@@ -12,33 +12,45 @@ def load_css():
         css_code = f.read()
     st.markdown(f'<style>{css_code}</style>', unsafe_allow_html=True)
 
-def add_preloader():
-    preloader_html = """
-    <div id="preloader">
-        <div id="loader"></div>
-    </div>
-    <script type="text/javascript">
-    document.onreadystatechange = function () {
-        if (document.readyState !== "complete") {
-            document.querySelector(
-            "body").style.visibility = "hidden";
-            document.querySelector(
-            "#preloader").style.visibility = "visible";
-        } else {
-            document.querySelector(
-            "#preloader").style.display = "none";
-            document.querySelector(
-            "body").style.visibility = "visible";
-        }
-    };
-    </script>
-    """
-    st.markdown(preloader_html, unsafe_allow_html=True)
+def categorize_by_time(datasets):
+    today = datetime.datetime.now().date()
+    yesterday = today - datetime.timedelta(days=1)
+    last_7_days = today - datetime.timedelta(days=7)
+    last_30_days = today - datetime.timedelta(days=30)
+
+    categorized = {
+        "Today": [],
+        "Yesterday": [],
+        "Previous 7 days": [],
+        "Previous 30 days": [],
+        "Older": []
+    }
+
+    for ds in datasets:
+        last_accessed_date = ds.last_accessed.date()
+        if last_accessed_date == today:
+            categorized["Today"].append(ds)
+        elif last_accessed_date == yesterday:
+            categorized["Yesterday"].append(ds)
+        elif last_accessed_date > last_7_days:
+            categorized["Previous 7 days"].append(ds)
+        elif last_accessed_date > last_30_days:
+            categorized["Previous 30 days"].append(ds)
+        else:
+            categorized["Older"].append(ds)
+
+    return categorized
 
 def dataset_upload_page():
-    # load_css()
-    add_preloader()
+    load_css()
     st.header('Upload your dataset', divider='violet')
+
+    if 'uploaded' not in st.session_state:
+        st.session_state.uploaded = False
+    if 'show_summary_button' not in st.session_state:
+        st.session_state.show_summary_button = False
+    if 'rename_action_state' not in st.session_state:
+        st.session_state.rename_action_state = {}
 
     with st.container(border=True):
         uploaded_file = st.file_uploader("Choose a file", type=["csv", "xlsx", "json"])
@@ -50,7 +62,7 @@ def dataset_upload_page():
             data = uploaded_file.getvalue()
 
             if dataset_db.dataset_exists(file_name):
-                st.warning("Dataset already exists.")
+                st.warning("Dataset with this name already exists.")
             else:
                 try:
                     with st.spinner("Loading..."):
@@ -86,6 +98,9 @@ def dataset_upload_page():
                         dataset_db.save_to_database(file_name, file_format, file_size, data)
                         st.success("Dataset uploaded successfully!")
                         st.session_state.uploaded = True
+                        st.session_state.show_summary_button = True  # Set flag to show summary button
+                        progress_text.text("")  # Clear the progress text
+                        progress_bar.empty()  # Clear the progress bar
 
                 except pd.errors.ParserError as e:
                     st.error(f"Error parsing the file: {e}")
@@ -97,8 +112,9 @@ def dataset_upload_page():
                     st.error(f"Error reading the file: {e}")
                     return
 
-        if st.session_state.get('uploaded'):
+        if st.session_state.show_summary_button:
             if st.button("View Data Summary"):
+                st.session_state.show_summary_button = False  # Hide the button after navigating
                 st.switch_page("pages/dataset_summary.py")
 
     datasets_list = dataset_db.fetch_datasets()
@@ -111,7 +127,6 @@ def dataset_upload_page():
             col1, col2, col3 = st.columns(3)
             with col1:
                 filter_format = st.selectbox("Filter by Format", ["All", "csv", "xlsx", "json"])
-
             with col2:
                 max_size = st.slider("Filter by Max Size (MB)", 0, 200, 200)
             with col3:
@@ -119,7 +134,6 @@ def dataset_upload_page():
 
         with st.container(border=True):
             st.write('<div class="recent-files">', unsafe_allow_html=True)
-            # st.write('<div class="recent-file-header">', unsafe_allow_html=True)
             col1, col2, col3, col4, col5 = st.columns([7, 3, 3, 4, 3])
             with col1:
                 st.write("**Name**")
@@ -128,12 +142,11 @@ def dataset_upload_page():
             with col3:
                 st.write("**Size**")
             with col4:
-                st.write("**Date & Time**")
+                st.write("**Last Accessed**")
             with col5:
                 st.write("**Action**")
             st.write('</div>', unsafe_allow_html=True)
 
-            # Ensure filter_date is a tuple with two dates
             if isinstance(filter_date, tuple) and len(filter_date) == 2:
                 start_date, end_date = filter_date
             else:
@@ -144,27 +157,48 @@ def dataset_upload_page():
                 if search_query.lower() in ds.name.lower() and 
                 (filter_format == "All" or ds.file_format == filter_format) and 
                 (ds.file_size <= max_size * 1024 * 1024) and 
-                (start_date <= ds.upload_date.date() <= end_date)
+                (start_date <= ds.last_accessed.date() <= end_date)
             ]
 
-            for ds in filtered_datasets:
-                st.write('<div class="recent-file-item">', unsafe_allow_html=True)
-                col1, col2, col3, col4, col5 = st.columns([7, 3, 3, 4, 3])
-                with col1:
-                    dataset_name = ds.name.split('.')[0]
-                    if st.button(f"{dataset_name}", key=f"view_{ds.id}"):
-                        view_dataset_summary(ds.id)
-                with col2:
-                    st.write(f"{ds.file_format.upper()}")
-                with col3:
-                    st.write(f"{round(ds.file_size / (1024 * 1024), 2)} MB")
-                with col4:
-                    st.write(f"{ds.upload_date.strftime('%Y-%m-%d %H:%M:%S')}")
-                with col5:
-                    if st.button("Delete", key=f"delete_{ds.id}"):
-                        delete_dataset(ds.id)
-                st.write('</div>', unsafe_allow_html=True)
+            filtered_datasets.sort(key=lambda x: x.last_accessed, reverse=True)
+
+            categorized_datasets = categorize_by_time(filtered_datasets)
+
+            for category, datasets in categorized_datasets.items():
+                if datasets:
+                    st.write(f"##### {category}")
+                    for ds in datasets:
+                        st.write('<div class="recent-file-item">', unsafe_allow_html=True)
+                        col2, col3, col4, col5, col6 = st.columns([6, 3, 3, 4, 3])
+
+                        with col2:
+                            dataset_name = ds.name.split('.')[0]
+                            st.write(f"{dataset_name}")
+                        with col3:
+                            st.write(f"{ds.file_format.upper()}")
+                        with col4:
+                            st.write(f"{round(ds.file_size / (1024 * 1024), 2)} MB")
+                        with col5:
+                            st.write(f"{ds.last_accessed.strftime('%Y-%m-%d %H:%M:%S')}")
+                        with col6:
+                            action_key = f"action_{ds.id}"
+                            action = st.selectbox("", ["Select", "View Summary", "Preprocessing", "Visualization", "Chat", "Share", "Rename", "Delete"], key=action_key, index=st.session_state.rename_action_state.get(ds.id, 0))
+                            if action == "View Summary":
+                                view_dataset_summary(ds.id)
+                            elif action == "Delete":
+                                delete_dataset(ds.id)
+                            elif action == "Rename":
+                                st.session_state.rename_action_state[ds.id] = 6  # Keep the state at "Rename"
+                                st.session_state['show_rename_dialog'] = True
+                                st.session_state['current_rename_id'] = ds.id
+                                st.session_state['current_rename_name'] = ds.name.split('.')[0]  # Show the name without extension
+                            else:
+                                st.session_state.rename_action_state[ds.id] = 0  # Reset to "Select" after rename
+                        st.write('</div>', unsafe_allow_html=True)
             st.write('</div>', unsafe_allow_html=True)
+
+            if not filtered_datasets:
+                st.write(f"You don't have any datasets matching the selected filters.")
     else:
         with st.container(border=True):
             st.write("You don't have any datasets uploaded. Please upload a dataset to get started.")
@@ -188,10 +222,36 @@ def view_dataset_summary(dataset_id):
                 return
         st.session_state.df = df
         st.session_state.dataset_name = dataset.name
+        dataset_db.update_last_accessed(dataset_id)
         st.switch_page("pages/dataset_summary.py")
 
 def delete_dataset(dataset_id):
     dataset_db.delete_dataset(dataset_id)
     st.experimental_rerun()
+
+@st.experimental_dialog("Rename")
+def show_rename_dialog():
+    dataset_id = st.session_state['current_rename_id']
+    current_name = st.session_state['current_rename_name']
+    new_name = st.text_input("Please enter a new name for the item:", value=current_name)
+    col1, col2 = st.columns(2)
+    if col1.button("Cancel"):
+        st.session_state['show_rename_dialog'] = False
+        st.session_state.rename_action_state[dataset_id] = 0  # Reset to "Select"
+        st.experimental_rerun()
+    if col2.button("Rename"):
+        if dataset_db.dataset_exists(new_name):
+            st.error("Dataset with this name already exists.")
+        else:
+            dataset_db.rename_dataset(dataset_id, new_name)
+            st.session_state['show_rename_dialog'] = False
+            st.session_state.rename_action_state[dataset_id] = 0  # Reset to "Select"
+            st.experimental_rerun()  # Ensure the recent files list is updated without full page reload
+
+if 'show_rename_dialog' not in st.session_state:
+    st.session_state['show_rename_dialog'] = False
+
+if st.session_state['show_rename_dialog']:
+    show_rename_dialog()
 
 dataset_upload_page()
