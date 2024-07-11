@@ -16,9 +16,7 @@ port = db_config["port"]
 database = db_config["database"]
 
 # Create the database connection URL
-DATABASE_URL = f"postgresql+psycopg2://{username}:{password}@{host}:{port}/{database}"
-
-# Set up the database connection
+DATABASE_URL = f"postgresql+psycopg2://{username}:{password}@{host}:{port}/{database}?sslmode=require"
 engine = create_engine(DATABASE_URL)
 metadata = MetaData()
 
