@@ -17,5 +17,5 @@ pytest-mock
 pytest
 SpeechRecognition
 streamlit-antd-components
-sounddevice
-
+streamlit-webrtc
+soundfile
