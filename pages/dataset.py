@@ -382,9 +382,9 @@ with st.spinner("Loading Please Wait ..."):
                         "q": query,
                         "rows": 10
                     }
-            
+                
                     response = requests.get(url, params=params)
-            
+                
                     if response.status_code == 200:
                         try:
                             datasets = response.json().get('result', {}).get('results', [])
@@ -392,25 +392,21 @@ with st.spinner("Loading Please Wait ..."):
                             for ds in datasets:
                                 resources = ds.get('resources', [])
                                 download_urls = []
-            
-                                allowed_formats = ['CSV', 'JSON', 'XLSX']
-                                filtered_resources = [
-                                    res for res in resources if res['format'].upper() in allowed_formats
-                                ]
-            
-                                for res in filtered_resources:
-                                    format_type = res['format'].upper()
-                                    if format_type not in [fmt for fmt, url in download_urls]:
-                                        download_urls.append((format_type, res.get('url', 'No direct download available.')))
-            
+                
+                                # Collect all available formats, even if unsupported
+                                for res in resources:
+                                    format_type = res.get('format', 'Unknown').upper()
+                                    url = res.get('url', 'No URL available')
+                                    download_urls.append((format_type, url))
+                
                                 last_updated = ds.get('metadata_modified', 'N/A')
-                                formatted_last_updated = last_updated[:10] 
-            
+                                formatted_last_updated = last_updated[:10]  # Format as YYYY-MM-DD
+                
                                 results.append({
                                     'id': ds.get('id', 'N/A'),
                                     'title': ds.get('title', 'N/A'),
-                                    'lastUpdated': formatted_last_updated,  
-                                    'download_urls': download_urls 
+                                    'lastUpdated': formatted_last_updated,
+                                    'download_urls': download_urls  # Include all resources with formats
                                 })
                             return results
                         except ValueError as e:
@@ -419,6 +415,7 @@ with st.spinner("Loading Please Wait ..."):
                     else:
                         st.error(f"Error fetching Data.gov datasets: {response.status_code} - {response.text}")
                         return []
+                
             
                 def display_datasets(self, datasets, source):
                     if datasets:
