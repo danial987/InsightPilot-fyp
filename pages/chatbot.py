@@ -1,16 +1,17 @@
-import speech_recognition as sr
+from streamlit_webrtc import webrtc_streamer, AudioProcessorBase, WebRtcMode
+import queue
 import io
+import soundfile as sf
+import speech_recognition as sr
 import pandas as pd
 import openai
 import uuid
 import streamlit as st
-import sounddevice as sd
-import numpy as np
-from streamlit_webrtc import webrtc_streamer, AudioProcessorBase, WebRtcMode
-import queue
-import soundfile as sf
+
+openai.api_key = st.secrets["OPENAI_API_KEY"]
 
 class AudioProcessor(AudioProcessorBase):
+    """Processes audio frames captured by webrtc_streamer."""
     def __init__(self):
         self.audio_queue = queue.Queue()
 
@@ -19,14 +20,11 @@ class AudioProcessor(AudioProcessorBase):
         return frame
 
 
-openai.api_key = st.secrets["OPENAI_API_KEY"]
-
 class Chatbot:
     def __init__(self):
         """Initialize the chatbot, setting up session state and chat history."""
         self.initialize_session()
-        self.recognizer = sr.Recognizer() 
-
+        self.recognizer = sr.Recognizer()
 
     def initialize_session(self):
         """Initialize session state variables."""
@@ -35,7 +33,6 @@ class Chatbot:
 
         if 'chat_history' not in st.session_state:
             st.session_state['chat_history'] = []
-
 
     def load_dataset(self):
         """Load the dataset from session state, return the DataFrame and its name."""
@@ -49,38 +46,16 @@ class Chatbot:
         df = self.convert_dataset_to_dataframe(dataset_data)
         return df, dataset_name
 
-
     def convert_dataset_to_dataframe(self, dataset_data):
         """Convert the dataset bytes into a pandas DataFrame."""
         try:
             if isinstance(dataset_data, bytes):
-                try:
-                    return pd.read_csv(io.BytesIO(dataset_data), encoding='utf-8', delimiter=',', on_bad_lines='skip')
-                except UnicodeDecodeError:
-                    try:
-                        return pd.read_csv(io.BytesIO(dataset_data), encoding='ISO-8859-1', delimiter=',', on_bad_lines='skip')
-                    except Exception as e:
-                        st.error(f"Failed to read CSV file (encoding issue): {str(e)}")
-                        return None
-                except pd.errors.ParserError as e:
-                    st.warning(f"ParserError occurred: {e}. Trying different delimiters.")
-                    try:
-                        return pd.read_csv(io.BytesIO(dataset_data), encoding='utf-8', delimiter=';', on_bad_lines='skip')  
-                    except pd.errors.ParserError as e:
-                        try:
-                            return pd.read_csv(io.BytesIO(dataset_data), encoding='utf-8', delimiter='\t', on_bad_lines='skip') 
-                        except Exception as e:
-                            st.error(f"Failed to read CSV with semicolon or tab delimiter: {str(e)}")
-                            return None
-                except Exception as e:
-                    st.error(f"Failed to load CSV file: {str(e)}")
-                    return None
+                return pd.read_csv(io.BytesIO(dataset_data), encoding='utf-8', delimiter=',', on_bad_lines='skip')
             else:
                 return dataset_data
         except Exception as e:
             st.error(f"Failed to load dataset: {str(e)}")
             return None
-
 
     def call_openai(self, prompt, df):
         """Generate detailed responses using OpenAI API with dataset context."""
@@ -88,8 +63,10 @@ class Chatbot:
         try:
             response = openai.ChatCompletion.create(
                 model="gpt-3.5-turbo",
-                messages=[{"role": "system", "content": "You are an AI that helps answer questions related to datasets, providing detailed, elaborative explanations."},
-                          {"role": "user", "content": full_prompt}],
+                messages=[
+                    {"role": "system", "content": "You are an AI that helps answer questions about datasets."},
+                    {"role": "user", "content": full_prompt},
+                ],
                 max_tokens=200,
                 temperature=0.6
             )
@@ -97,64 +74,38 @@ class Chatbot:
         except Exception as e:
             return f"Error calling OpenAI API: {str(e)}"
 
-
     def build_openai_prompt(self, user_prompt, df):
-        """Build the prompt for OpenAI by including detailed context from the dataset."""
+        """Build the prompt for OpenAI by including dataset context."""
         dataset_summary = self.generate_dataset_summary(df)
         full_prompt = f"{user_prompt}\n\nDataset Context:\n{dataset_summary}"
         return full_prompt
 
-
     def generate_dataset_summary(self, df):
-        """Generate a detailed summary of the dataset, including column details and basic statistics."""
+        """Generate a detailed summary of the dataset."""
         try:
             column_info = self.get_column_information(df)
-            missing_values_info = self.get_missing_values_info(df)
             numeric_summary = self.get_numeric_summary(df)
-
             dataset_summary = (
-                f"Columns in the dataset:\n{column_info}\n\n"
-                f"Missing values:\n{missing_values_info}\n\n"
+                f"Columns:\n{column_info}\n\n"
                 f"Summary statistics for numeric columns:\n{numeric_summary}\n\n"
-                f"First 5 rows of the dataset:\n{df.head(5).to_string(index=False)}"
+                f"First 5 rows:\n{df.head(5).to_string(index=False)}"
             )
             return dataset_summary
         except Exception as e:
             return f"Error generating dataset summary: {str(e)}"
 
-
     def get_column_information(self, df):
-        """Get detailed information about dataset columns, including their types."""
-        column_info = []
-        for col in df.columns:
-            dtype = df[col].dtype
-            column_info.append(f"- {col}: {dtype}")
-        return "\n".join(column_info)
-
-
-    def get_missing_values_info(self, df):
-        """Check for missing values in the dataset."""
-        missing_info = df.isnull().sum()
-        if missing_info.sum() == 0:
-            return "No missing values in the dataset."
-        else:
-            missing_report = "\n".join([f"- {col}: {missing_info[col]} missing values" for col in df.columns if missing_info[col] > 0])
-            return missing_report
-
+        """Get dataset column details."""
+        return "\n".join([f"- {col}: {df[col].dtype}" for col in df.columns])
 
     def get_numeric_summary(self, df):
-        """Generate summary statistics for numeric columns in the dataset."""
+        """Generate summary statistics for numeric columns."""
         numeric_columns = df.select_dtypes(include=['float64', 'int64'])
-        if numeric_columns.empty:
-            return "No numeric columns found in the dataset."
-        else:
-            return numeric_columns.describe().to_string()
-
+        return numeric_columns.describe().to_string() if not numeric_columns.empty else "No numeric columns found."
 
     def record_audio(self):
-        """Record audio using browser-based audio recording and return the transcribed text."""
-        st.info("Click the START button below to begin recording.")
-
+        """Record audio using browser-based audio and return the transcribed text."""
+        st.info("Click the START button to begin recording.")
         audio_processor = webrtc_streamer(
             key="speech_recorder",
             mode=WebRtcMode.SENDRECV,
@@ -163,13 +114,13 @@ class Chatbot:
         )
 
         if not audio_processor or not audio_processor.audio_queue:
-            st.warning("Waiting for audio...")
+            st.warning("Waiting for audio input...")
             return None
 
-        st.info("Recording... Speak now!")
+        st.info("Recording audio... Speak now!")
         audio_data = []
         try:
-            for _ in range(100):  # Adjust duration of recording as needed
+            for _ in range(100):  # Adjust to change recording duration
                 audio_chunk = audio_processor.audio_queue.get(timeout=1)
                 audio_data.extend(audio_chunk)
         except queue.Empty:
@@ -178,112 +129,74 @@ class Chatbot:
         if audio_data:
             # Convert audio data to WAV format
             wav_buffer = io.BytesIO()
-            with sf.SoundFile(
-                wav_buffer, mode='w', samplerate=16000, channels=1, format='WAV'
-            ) as wav_file:
+            with sf.SoundFile(wav_buffer, mode='w', samplerate=16000, channels=1, format='WAV') as wav_file:
                 wav_file.write(audio_data)
             wav_buffer.seek(0)
 
-            # Transcribe audio with SpeechRecognition
-            audio = sr.AudioFile(wav_buffer)
-            with audio as source:
-                audio_data = self.recognizer.record(source)
+            # Transcribe audio using SpeechRecognition
             try:
-                user_input = self.recognizer.recognize_google(audio_data)
-                return user_input
+                audio = sr.AudioFile(wav_buffer)
+                with audio as source:
+                    audio_data = self.recognizer.record(source)
+                return self.recognizer.recognize_google(audio_data)
             except sr.UnknownValueError:
                 st.error("Sorry, I could not understand the audio.")
-                return None
-            except sr.RequestError:
-                st.error("There was an error with the speech recognition service.")
-                return None
-
-        st.warning("No audio detected. Please try again.")
+            except sr.RequestError as e:
+                st.error(f"Speech recognition service error: {str(e)}")
+        else:
+            st.warning("No audio detected.")
         return None
 
-    # Other methods remain unchanged...
-
-
-
     def run(self):
-        """Run the chatbot, handling user input and generating responses."""
-        with st.spinner("Loading Please Wait ..."):
-
+        """Run the chatbot."""
+        with st.spinner("Loading..."):
             df, dataset_name = self.load_dataset()
-    
+
             if df is not None and dataset_name is not None:
-                st.header(f"Chat with your Dataset: {dataset_name} 🧠", divider='violet')
-    
+                st.header(f"Chat with your Dataset: {dataset_name}")
                 user_input = st.chat_input(f"Ask a question about {dataset_name}!")
-    
+
                 if user_input:
                     self.append_chat_history('user', user_input)
                     response = self.call_openai(user_input, df)
                     self.append_chat_history('assistant', response)
-    
+
                 for chat in st.session_state['chat_history']:
                     st.chat_message(chat['role']).write(chat['message'])
-    
+
                 self.voice_input_icon()
-    
                 self.export_chat_history()
             else:
                 st.error("No dataset selected. Please go back and select a dataset.")
 
-
     def append_chat_history(self, role, message):
-        """Append the user or assistant message to the chat history."""
+        """Append a message to chat history."""
         st.session_state['chat_history'].append({'role': role, 'message': message})
         st.chat_message(role).write(message)
 
-
     def export_chat_history(self):
-        """Allow the user to export the chat history as a text file."""
+        """Allow chat history export."""
         if st.session_state.get('chat_history'):
             chat_history_text = self.format_chat_history()
             st.download_button(
                 label="Download Chat History",
                 data=chat_history_text,
                 file_name="chat_history.txt",
-                mime="text/plain"
+                mime="text/plain",
             )
 
-
     def format_chat_history(self):
-        """Format chat history as a readable text."""
-        formatted_history = []
-        for chat in st.session_state['chat_history']:
-            role = "User" if chat['role'] == 'user' else "Assistant"
-            formatted_history.append(f"{role}: {chat['message']}\n")
-        return "".join(formatted_history)
-
+        """Format chat history as text."""
+        return "\n".join([f"{chat['role'].capitalize()}: {chat['message']}" for chat in st.session_state['chat_history']])
 
     def voice_input_icon(self):
-        """Display a button styled as a microphone icon. Clicking the button triggers the record_audio method."""
-        st.markdown(
-            """
-            <style>
-            .voice-icon-container {
-                position: fixed;
-                bottom: 30px;
-                right: 30px;
-                z-index: 1000;
-            }
-            </style>
-            """,
-            unsafe_allow_html=True
-        )
-        
-        st.markdown('<div class="voice-icon-container">', unsafe_allow_html=True)
-        if st.button("🎙️", key="voice_button"):
+        """Show voice input button."""
+        if st.button("🎙️ Start Voice Input"):
             user_input = self.record_audio()
             if user_input:
                 self.append_chat_history('user', user_input)
                 response = self.call_openai(user_input, self.load_dataset()[0])
                 self.append_chat_history('assistant', response)
-            else:
-                st.error("Sorry, I didn't catch that. Please try again.")
-        st.markdown('</div>', unsafe_allow_html=True)
 
 chatbot = Chatbot()
 chatbot.run()
