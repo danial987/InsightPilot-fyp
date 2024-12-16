@@ -29,7 +29,7 @@ class Chatbot:
         dataset_name = st.session_state.get('dataset_name_to_chat', None)
 
         if dataset_data is None:
-            st.error("No dataset found in session state.")
+            # st.error("No dataset found in session state.")
             return None, None
 
         df = self.convert_dataset_to_dataframe(dataset_data)
