@@ -143,7 +143,7 @@ def display_auth_page():
             border-left: 5px solid #9645ff; 
             border-radius: 10px; 
             margin: 5rem 6rem 3rem 6rem; 
-            margin-top: 4rem;
+            margin-top: 6rem;
             box-shadow: 0px 6px 7px rgba(150, 69, 255, 0.2);
             max-width: 1300px;
         }
