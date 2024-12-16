@@ -45,6 +45,14 @@ if not st.session_state.authenticated:
                 padding: 6rem 1rem 1rem;
                 max-width: 46rem;
             }
+
+            ._link_gzau3_10 {
+              visibility: hidden;
+            }
+            
+            ._profileContainer_gzau3_53 {
+              visibility: hidden;
+            }
             
         </style>
         """,
