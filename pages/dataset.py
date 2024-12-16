@@ -337,23 +337,20 @@ with st.spinner("Loading Please Wait ..."):
         
             class DatasetSearch:
                 def __init__(self):
-                    os.environ['KAGGLE_USERNAME'] = "hoorainhabibabbasi" 
-                    os.environ['KAGGLE_KEY'] = "c6267653dad344a650deac0efd9f6e50"  
+                    os.environ['KAGGLE_USERNAME'] = "hoorainhabibabbasi"
+                    os.environ['KAGGLE_KEY'] = "c6267653dad344a650deac0efd9f6e50"
             
                     self.kaggle_api = KaggleApi()
                     self.kaggle_api.authenticate()
             
-                    
-            
                 def dataset_search_page(self):
-                    load_css()
+                    self.load_css()
                     st.write("##### Search Options")
             
-    
                     source_option = st.radio("Choose a data source", ["Kaggle", "Data.gov"], index=0)
-    
+            
                     search_query = st.text_input("Search Datasets", placeholder="Search datasets...", help="Enter keywords to search for datasets.")
-    
+            
                     if search_query:
                         st.write("##### Search Results")
                         with st.spinner("Searching..."):
@@ -365,7 +362,10 @@ with st.spinner("Loading Please Wait ..."):
                                 self.display_datasets(data_gov_datasets, source='Data.gov')
                     else:
                         st.write("Enter a search query to find datasets.")
-                
+            
+                def load_css(self):
+                    # Add your custom CSS here if needed
+                    pass
             
                 def search_kaggle_datasets(self, query):
                     datasets = self.kaggle_api.dataset_list(search=query)
@@ -378,7 +378,6 @@ with st.spinner("Loading Please Wait ..."):
                             'lastUpdated': ds.lastUpdated
                         })
                     return results
-            
             
                 def search_data_gov_datasets(self, query):
                     url = "https://catalog.data.gov/api/3/action/package_search"
@@ -424,7 +423,6 @@ with st.spinner("Loading Please Wait ..."):
                         st.error(f"Error fetching Data.gov datasets: {response.status_code} - {response.text}")
                         return []
             
-            
                 def display_datasets(self, datasets, source):
                     if datasets:
                         st.write('<div class="recent-file-item">', unsafe_allow_html=True)
@@ -440,7 +438,7 @@ with st.spinner("Loading Please Wait ..."):
                             st.write("**Action**")
                         st.write('</div>', unsafe_allow_html=True)
             
-                        for ds in datasets:
+                        for idx, ds in enumerate(datasets):
                             st.write('<div class="recent-file-item">', unsafe_allow_html=True)
                             col1, col2, col3, col4 = st.columns([5, 2, 3, 3])
                             with col1:
@@ -454,43 +452,56 @@ with st.spinner("Loading Please Wait ..."):
                                 if source == 'Kaggle':
                                     download_link = self.create_download_link(ds['id'])
                                     if download_link:
-                                        st.download_button(label="Download", 
-                                                           data=download_link['data'], 
-                                                           file_name=download_link['file_name'], 
-                                                           mime=download_link['mime'])
+                                        st.download_button(
+                                            label="Download", 
+                                            data=download_link['data'], 
+                                            file_name=download_link['file_name'], 
+                                            mime=download_link['mime'],
+                                            key=f"kaggle_download_{idx}"  # Unique key for each button
+                                        )
                                 elif source == 'Data.gov':
                                     if ds['download_urls']:
                                         selected_format = st.selectbox(
                                             f"Select format for {ds['title']}",
                                             options=[fmt for fmt, url in ds['download_urls']],
-                                            key=f"{ds['id']}_selectbox" 
+                                            key=f"selectbox_{ds['id']}"  # Unique key for each selectbox
                                         )
                                         download_url = next(url for fmt, url in ds['download_urls'] if fmt == selected_format)
-                                        
+            
                                         if selected_format == "JSON":
                                             response = requests.get(download_url)
                                             if response.status_code == 200:
                                                 try:
-                                                    json_data = response.json() 
-                                                    json_str = json.dumps(json_data, indent=4)  
-                                                    st.download_button(label="Download JSON", data=json_str, file_name=f"{ds['title']}.json", mime="application/json")
+                                                    json_data = response.json()
+                                                    json_str = json.dumps(json_data, indent=4)
+                                                    st.download_button(
+                                                        label="Download JSON", 
+                                                        data=json_str, 
+                                                        file_name=f"{ds['title']}.json", 
+                                                        mime="application/json",
+                                                        key=f"json_download_{ds['id']}"  # Unique key for each button
+                                                    )
                                                 except json.JSONDecodeError:
                                                     st.error("Invalid JSON file format.")
                                             else:
                                                 st.error(f"Failed to download JSON file: {response.status_code}")
                                         else:
-                                            st.download_button(label="Download", data=download_url, file_name=f"{ds['title']}.{selected_format.lower()}")
+                                            st.download_button(
+                                                label="Download",
+                                                data=download_url,
+                                                file_name=f"{ds['title']}.{selected_format.lower()}",
+                                                key=f"datagov_download_{ds['id']}"  # Unique key for each button
+                                            )
                                     else:
                                         st.write("No formats available.")
                             st.write('</div>', unsafe_allow_html=True)
                     else:
                         st.write("No datasets found.")
             
-    
                 def create_download_link(self, dataset_ref):
                     with tempfile.TemporaryDirectory() as temp_dir:
-                        self.kaggle_api.dataset_download_files(dataset_ref, path=temp_dir, unzip=True) 
-                        files = os.listdir(temp_dir) 
+                        self.kaggle_api.dataset_download_files(dataset_ref, path=temp_dir, unzip=True)
+                        files = os.listdir(temp_dir)
             
                         if files:
                             original_file = files[0]
@@ -508,6 +519,6 @@ with st.spinner("Loading Please Wait ..."):
                     st.error("No files found for download.")
                     return None
             
-            
             search_app = DatasetSearch()
             search_app.dataset_search_page()
+            
