@@ -1,8 +1,13 @@
-
-
+import speech_recognition as sr
+import io
+import pandas as pd
+import openai
+import uuid
+import streamlit as st
+import sounddevice as sd
+import numpy as np
 from streamlit_webrtc import webrtc_streamer, AudioProcessorBase, WebRtcMode
 import queue
-import io
 import soundfile as sf
 
 class AudioProcessor(AudioProcessorBase):
@@ -13,14 +18,14 @@ class AudioProcessor(AudioProcessorBase):
         self.audio_queue.put(frame.to_ndarray().flatten())
         return frame
 
-# openai.api_key = ''
+
 openai.api_key = st.secrets["OPENAI_API_KEY"]
 
 class Chatbot:
     def __init__(self):
         """Initialize the chatbot, setting up session state and chat history."""
         self.initialize_session()
-        self.recognizer = sr.Recognizer()
+        self.recognizer = sr.Recognizer() 
 
 
     def initialize_session(self):
@@ -197,6 +202,8 @@ class Chatbot:
         return None
 
     # Other methods remain unchanged...
+
+
 
     def run(self):
         """Run the chatbot, handling user input and generating responses."""
