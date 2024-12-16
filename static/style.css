@@ -1,184 +1,32 @@
-/* Hide Streamlit menu and footer */
 #MainMenu,
 header {
   visibility: hidden;
 }
 
-/* Custom button style with gradient and hover effect */
-/* .stButton button {
-  background-image: linear-gradient(to right, #9645ff, #5a30cc);
-  color: white;
-  border-radius: 12px;
-  padding: 10px 24px;
-  border: none;
-  font-size: 16px;
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
-}
-
-.stButton button:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-  color: white;
-}
-
-/* Style the file uploader button */
-/* .css-1cpxqw2 .st-emotion-cache-7ym5gk button {
-  background-image: linear-gradient(to right, #9645ff, #5a30cc) !important;
-  color: white !important;
-  border-radius: 12px !important;
-  padding: 10px 24px !important;
-  border: none !important;
-  font-size: 16px !important;
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
-}
-
-.css-1cpxqw2 .st-emotion-cache-7ym5gk button:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2) !important;
-} */
-*/
-
-/* Adjust the page background color and add a subtle texture */
-.stApp {
-  /* background-color: #f4f4f9; */
-  /* background-image: url('data:image/png;base64,...'); Add your base64 texture */
-  /* padding: 2rem; */
-  max-width: 1300px;
-}
-
-/* Container styling with refined shadow */
-.main .block-container {
-  max-width: 1300px;
-  padding: 2rem;
-  /* margin: auto; */
-  /* background-color: #ffffff; */
-  border-radius: 12px;
-  /* box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1); */
-}
-
-/* Global font styling with Google Fonts */
-body {
-  font-family: "Poppins", sans-serif;
-  color: #333333;
-}
-
-/* Enhance all headers with spacing and font weight  */
-h1,
-h2,
-h3,
-h4,
-h5,
-h6 {
-  margin-bottom: 0.5rem;
-  font-weight: 600;
-}
-
-/* Enhanced link styling */
-a {
-  text-decoration: none;
-  color: #9645ff;
-}
-
-a:hover {
-  text-decoration: underline;
-  color: #7525cc;
-}
-
-/* Recent files enhanced visual styling */
-.recent-files {
-  margin-top: 2rem;
-}
-
-.recent-file-header {
+.st-emotion-cache-scf51s {
+  width: 950px;
+  position: relative;
   display: flex;
-  justify-content: space-between;
-  align-items: center;
-  /* background-color: #eeeeee; */
-  padding: 10px 20px;
-  border-radius: 8px;
-  margin-bottom: 1rem;
-  font-weight: bold;
+  flex: 1 1 0%;
+  flex-direction: column;
+  margin-top: -50px;
 }
 
-.recent-file-item {
+.st-emotion-cache-41yyj8 {
+  width: 1192px;
+  position: relative;
   display: flex;
-  justify-content: space-between;
-  align-items: center;
-  /* background-color: #ffffff; */
-  padding: 1px 20px;
-  border-radius: 8px;
-  box-shadow: 0 0.5px 0px rgba(0, 0, 0, 0.1);
-  margin-bottom: 2rem;
-  margin-top: 1rem;
-  /* transition: transform 0.3s ease, box-shadow 0.3s ease; */
+  flex: 1 1 0%;
+  flex-direction: column;
+  margin-top: -50px;
 }
 
-/* .recent-file-item:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
-} */
-
-.recent-file-item button {
-  background-color: #ff4d4d;
-  color: white;
-  border: none;
-  border-radius: 8px;
-  padding: 5px 10px;
-  cursor: pointer;
-  transition: background-color 0.3s ease;
+.st-emotion-cache-1jicfl2 {
+  padding-top: 2.2rem;
 }
 
-.recent-file-item button:hover {
-  background-color: #cc0000;
-  color: white;
-}
-
-/* Adjust spacing and layout for better readability */
-.recent-file-details {
-  flex-grow: 1;
-  padding-left: 1rem;
-}
-
-/* .st-emotion-cache-nziaof {
-  margin: .5rem 1rem;
-  
-}
-
-.st-emotion-cache-pkbazv{
-  margin: .5rem 1rem;
-} */
-
-.button {
-  display: inline-flex;
-  -webkit-box-align: center;
-  align-items: center;
-  -webkit-box-pack: center;
-  justify-content: center;
-  font-weight: 400;
-  padding: 0.25rem 0.75rem;
-  border-radius: 0.5rem;
-  min-height: 38.4px;
-  margin: 0px;
-  line-height: 1.6;
-  color: inherit;
-  width: auto;
-  user-select: none;
-  background-color: rgb(255, 255, 255);
-  border: 1px solid rgba(49, 51, 63, 0.2);
-}
-
-/* .button:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-  color: white;
-}
-
- */
-
-.st-b9 {
-  padding-top: 7px;
-  padding-bottom: 7px;
-  margin-bottom: 20px;
+.st-emotion-cache-1jicfl2 {
+  padding-top: 0.2rem;
 }
 
 .st-emotion-cache-1gwi74i {
@@ -319,3 +167,54 @@ a:hover {
   -webkit-box-align: center;
   align-items: center;
 }
+
+.st-emotion-cache-xtjyj5{
+  background-color: #9645ff;
+  color: white;
+  display: flex;
+  align-items: center;
+  text-decoration: none;
+  padding: 6px 7px;
+  border-radius: 6px;
+  color: #333;
+  font-weight: 300;
+}
+
+.st-emotion-cache-1rtdyuf {
+  color: white;
+}
+
+.st-emotion-cache-qubd7b {
+  display: flex;
+  align-items: center;
+  text-decoration: none;
+  padding: 6px 7px;
+  border-radius: 6px;
+  color: #333;
+  background-color: transparent; 
+}
+
+.st-emotion-cache-xtjyj5:hover, .st-emotion-cache-qubd7b:hover {
+  background-color: #9645ff;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  text-decoration: none;
+  padding: 6px 7px;
+  border-radius: 6px;
+  color: #333;
+  font-weight: 300;
+}
+
+.st-emotion-cache-6tkfeg:hover {
+  color: white;
+}
+
+.st-emotion-cache-1kyxreq {
+  margin-top: -415px;
+}
+
+.st-emotion-cache-79elbk {
+  margin-top: 45px;
+}
+

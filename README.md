@@ -1,2 +1,2 @@
-# InsightPilot-fyp
- Navigate the data sikes with confidence
+# InsightPilot-dev
+Data Analysis Tool
