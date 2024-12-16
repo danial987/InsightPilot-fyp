@@ -7,8 +7,17 @@ import uuid
 import streamlit as st
 import sounddevice as sd
 import numpy as np
-import io
 
+import os
+# Ensure PortAudio is installed at runtime
+try:
+    import sounddevice as sd
+except OSError:
+    st.info("PortAudio not found. Installing it now...")
+    os.system("pip install pipwin")
+    os.system("pipwin install pyaudio")
+    os.system("pip install sounddevice")
+    import sounddevice as sd
 
 openai_api_key = st.text_input("Enter your OpenAI API key:", type="password")
 if openai_api_key:
