@@ -19,3 +19,4 @@ SpeechRecognition
 streamlit-antd-components
 soundfile
 sounddevice
+pipwin
