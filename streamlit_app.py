@@ -28,28 +28,28 @@ if 'authenticated' not in st.session_state:
     st.session_state.authenticated = False
 
 if not st.session_state.authenticated:
-    # st.markdown(
-    #     """
-    #     <style>
-    #         [data-testid="stSidebar"] {display: none;}
-    #         .st-emotion-cache-19ee8pt{
-    #         display:none;}
-    #         .st-emotion-cache-12fmjuu{
-    #         display:none;}
-    #         .st-emotion-cache-hzo1qh{
-    #         display:none;}
-    #         .st-emotion-cache-13ln4jf{
-    #         margin-top: -80px;}
-    #         .st-emotion-cache-13ln4jf {
-    #             width: 100%;
-    #             padding: 6rem 1rem 1rem;
-    #             max-width: 46rem;
-    #         }
+    st.markdown(
+        """
+        <style>
+            [data-testid="stSidebar"] {display: none;}
+            .st-emotion-cache-19ee8pt{
+            display:none;}
+            .st-emotion-cache-12fmjuu{
+            display:none;}
+            .st-emotion-cache-hzo1qh{
+            display:none;}
+            .st-emotion-cache-13ln4jf{
+            margin-top: -80px;}
+            .st-emotion-cache-13ln4jf {
+                width: 100%;
+                padding: 6rem 1rem 1rem;
+                max-width: 46rem;
+            }
             
-    #     </style>
-    #     """,
-    #     unsafe_allow_html=True
-    # )
+        </style>
+        """,
+        unsafe_allow_html=True
+    )
     auth.display_auth_page()
     
 else:
