@@ -142,7 +142,7 @@ def display_auth_page():
             background-color: #f9f9f9; 
             border-left: 5px solid #9645ff; 
             border-radius: 10px; 
-            margin: 3rem 6rem 3rem 6rem; 
+            margin: 5rem 6rem 3rem 6rem; 
             margin-top: 4rem;
             box-shadow: 0px 6px 7px rgba(150, 69, 255, 0.2);
             max-width: 1300px;
