@@ -38,6 +38,17 @@ import io
 from dataset import Dataset 
 from abc import ABC, abstractmethod
 
+def load_css():
+    """Load custom CSS to style the interface."""
+    try:
+        css_path = os.path.join(os.path.dirname(__file__), "../static/style.css")
+        with open(css_path) as f:
+            css_code = f.read()
+        st.markdown(f'<style>{css_code}</style>', unsafe_allow_html=True)
+    except FileNotFoundError:
+        st.warning("Custom CSS file not found. Using default styles.")
+    except Exception as e:
+        st.error(f"An unexpected error occurred: {e}")
 
 class IModelStrategy(ABC):
     def __init__(self):
@@ -603,6 +614,7 @@ def reset_results_on_new_dataset():
         del st.session_state["dataset_name_for_modeling"]
 
 def models_page():
+    load_css()
     st.header("Model Training and Evaluation", divider='violet')
 
     if 'model_context' not in st.session_state:
