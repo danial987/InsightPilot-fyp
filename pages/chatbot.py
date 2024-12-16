@@ -5,7 +5,7 @@ import openai
 import uuid
 import streamlit as st
 
-openai.api_key = 'your-openai-api-key-here'
+openai.api_key = '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'
 
 class Chatbot:
     def __init__(self):
