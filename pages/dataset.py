@@ -334,11 +334,21 @@ with st.spinner("Loading Please Wait ..."):
         
             class DatasetSearch:
                 def __init__(self):
+                    import os
+            
+                    # Load Kaggle credentials
                     os.environ['KAGGLE_USERNAME'] = "hoorainhabibabbasi"
                     os.environ['KAGGLE_KEY'] = "c6267653dad344a650deac0efd9f6e50"
             
-                    self.kaggle_api = KaggleApi()
-                    self.kaggle_api.authenticate()
+                    # Debug environment variable loading
+                    print("KAGGLE_USERNAME:", os.environ.get('KAGGLE_USERNAME'))
+                    print("KAGGLE_KEY:", os.environ.get('KAGGLE_KEY'))
+            
+                    try:
+                        self.kaggle_api = KaggleApi()
+                        self.kaggle_api.authenticate()
+                    except IOError as e:
+                        st.error(f"Error authenticating with Kaggle API: {e}")
             
                 def dataset_search_page(self):
                     self.load_css()
