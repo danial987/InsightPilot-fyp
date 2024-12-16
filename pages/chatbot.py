@@ -107,59 +107,61 @@ class Chatbot:
         numeric_columns = df.select_dtypes(include=['float64', 'int64'])
         return numeric_columns.describe().to_string() if not numeric_columns.empty else "No numeric columns found."
 
-    def record_audio():
-        """Record audio using streamlit-webrtc and return the transcribed text."""
-        st.info("Click the START button below to begin recording.")
+    def record_audio(self):
+        """Record audio using streamlit-webrtc with session state."""
+        if "recording" not in st.session_state:
+            st.session_state["recording"] = False
+        if "audio_frames" not in st.session_state:
+            st.session_state["audio_frames"] = []
     
-        # Initialize WebRTC streamer
-        audio_processor = webrtc_streamer(
-            key="speech_recorder",
-            mode=WebRtcMode.SENDRECV,
-            audio_processor_factory=AudioProcessor,
-            media_stream_constraints={"audio": True, "video": False},
-        )
-    
-        if not audio_processor:
-            st.warning("WebRTC not initialized. Please wait.")
-            return None
-    
-        # Check if audio frames are being captured
-        st.info("Recording audio... Speak now!")
-        audio_frames = []
-        if audio_processor.audio_queue:
-            try:
-                for _ in range(100):  # Collect a finite number of audio chunks
-                    frame = audio_processor.audio_queue.get(timeout=1)
-                    audio_frames.extend(frame)
-            except queue.Empty:
-                st.warning("No audio detected. Please ensure your microphone is active.")
-    
-        # Process recorded audio into WAV format
-        if audio_frames:
-            st.success("Recording completed. Transcribing...")
-            wav_buffer = io.BytesIO()
-            with sf.SoundFile(
-                wav_buffer, mode="w", samplerate=16000, channels=1, format="WAV"
-            ) as wav_file:
-                wav_file.write(np.array(audio_frames))
-            wav_buffer.seek(0)
-    
-            # Use SpeechRecognition to transcribe
-            recognizer = sr.Recognizer()
-            try:
-                with sr.AudioFile(wav_buffer) as source:
-                    audio_data = recognizer.record(source)
-                    return recognizer.recognize_google(audio_data)
-            except sr.UnknownValueError:
-                st.error("Sorry, I could not understand the audio.")
-                return None
-            except sr.RequestError as e:
-                st.error(f"Speech recognition service error: {e}")
-                return None
+        # Start or Stop Recording
+        if not st.session_state["recording"]:
+            if st.button("🎙️ Start Recording"):
+                st.session_state["recording"] = True
+                st.session_state["audio_frames"] = []
         else:
-            st.warning("No audio captured. Please try again.")
-            return None
-
+            if st.button("⏹️ Stop Recording"):
+                st.session_state["recording"] = False
+    
+        # WebRTC streamer logic
+        if st.session_state["recording"]:
+            audio_processor = webrtc_streamer(
+                key="speech_recorder",
+                mode=WebRtcMode.SENDRECV,
+                audio_processor_factory=AudioProcessor,
+                media_stream_constraints={"audio": True, "video": False},
+            )
+            if audio_processor and audio_processor.audio_queue:
+                try:
+                    while not audio_processor.audio_queue.empty():
+                        frame = audio_processor.audio_queue.get(timeout=1)
+                        st.session_state["audio_frames"].extend(frame)
+                except queue.Empty:
+                    st.warning("No audio detected. Speak into the microphone.")
+        else:
+            if st.session_state["audio_frames"]:
+                st.success("Recording completed. Processing audio...")
+                wav_buffer = io.BytesIO()
+                with sf.SoundFile(
+                    wav_buffer, mode="w", samplerate=16000, channels=1, format="WAV"
+                ) as wav_file:
+                    wav_file.write(np.array(st.session_state["audio_frames"]))
+                wav_buffer.seek(0)
+    
+                # Transcribe the audio
+                recognizer = sr.Recognizer()
+                try:
+                    with sr.AudioFile(wav_buffer) as source:
+                        audio_data = recognizer.record(source)
+                    return recognizer.recognize_google(audio_data)
+                except sr.UnknownValueError:
+                    st.error("Sorry, I could not understand the audio.")
+                except sr.RequestError as e:
+                    st.error(f"Speech recognition service error: {e}")
+            else:
+                st.warning("No audio captured.")
+        return None
+    
 
 
     def run(self):
