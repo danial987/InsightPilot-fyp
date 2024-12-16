@@ -15,13 +15,14 @@ else:
     st.warning("Please provide an API key to proceed.")
 
 class AudioProcessor(AudioProcessorBase):
-    """Processes audio frames captured by webrtc_streamer."""
     def __init__(self):
         self.audio_queue = queue.Queue()
 
     def recv(self, frame):
+        # Put audio data into the queue
         self.audio_queue.put(frame.to_ndarray().flatten())
         return frame
+
 
 
 class Chatbot:
@@ -110,6 +111,8 @@ class Chatbot:
     def record_audio(self):
         """Record audio using browser-based audio and return the transcribed text."""
         st.info("Click the START button to begin recording.")
+
+        # Initialize the WebRTC streamer
         audio_processor = webrtc_streamer(
             key="speech_recorder",
             mode=WebRtcMode.SENDRECV,
@@ -117,39 +120,48 @@ class Chatbot:
             media_stream_constraints={"audio": True, "video": False},
         )
 
-        if not audio_processor or not audio_processor.audio_queue:
-            st.warning("Waiting for audio input...")
+        if not audio_processor:
+            st.warning("WebRTC not initialized. Please check your connection.")
             return None
 
-        st.info("Recording audio... Speak now!")
-        audio_data = []
-        try:
-            for _ in range(100):  # Adjust to change recording duration
-                audio_chunk = audio_processor.audio_queue.get(timeout=1)
-                audio_data.extend(audio_chunk)
-        except queue.Empty:
-            pass
+        st.info("Recording audio... Speak now and stop recording when finished.")
 
-        if audio_data:
-            # Convert audio data to WAV format
-            wav_buffer = io.BytesIO()
-            with sf.SoundFile(wav_buffer, mode='w', samplerate=16000, channels=1, format='WAV') as wav_file:
-                wav_file.write(audio_data)
-            wav_buffer.seek(0)
-
-            # Transcribe audio using SpeechRecognition
+        # Wait for user to stop the recording
+        if st.button("Stop Recording"):
+            st.success("Recording stopped. Processing audio...")
+            audio_frames = []
             try:
-                audio = sr.AudioFile(wav_buffer)
-                with audio as source:
-                    audio_data = self.recognizer.record(source)
-                return self.recognizer.recognize_google(audio_data)
-            except sr.UnknownValueError:
-                st.error("Sorry, I could not understand the audio.")
-            except sr.RequestError as e:
-                st.error(f"Speech recognition service error: {str(e)}")
-        else:
-            st.warning("No audio detected.")
+                # Fetch audio frames from the processor
+                while not audio_processor.audio_queue.empty():
+                    frame = audio_processor.audio_queue.get()
+                    audio_frames.extend(frame)
+            except Exception as e:
+                st.error(f"Error while fetching audio frames: {e}")
+                return None
+
+            # Convert the audio frames to WAV format
+            if audio_frames:
+                wav_buffer = io.BytesIO()
+                with sf.SoundFile(
+                    wav_buffer, mode='w', samplerate=16000, channels=1, format='WAV'
+                ) as wav_file:
+                    wav_file.write(audio_frames)
+                wav_buffer.seek(0)
+
+                # Transcribe the audio
+                try:
+                    audio = sr.AudioFile(wav_buffer)
+                    with audio as source:
+                        audio_data = self.recognizer.record(source)
+                    return self.recognizer.recognize_google(audio_data)
+                except sr.UnknownValueError:
+                    st.error("Sorry, I could not understand the audio.")
+                except sr.RequestError as e:
+                    st.error(f"Speech recognition service error: {e}")
+            else:
+                st.warning("No audio detected.")
         return None
+
 
     def run(self):
         """Run the chatbot."""
