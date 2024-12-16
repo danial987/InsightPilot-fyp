@@ -8,7 +8,11 @@ import openai
 import uuid
 import streamlit as st
 
-openai.api_key = st.secrets["OPENAI_API_KEY"]
+openai_api_key = st.text_input("Enter your OpenAI API key:", type="password")
+if openai_api_key:
+    openai.api_key = openai_api_key
+else:
+    st.warning("Please provide an API key to proceed.")
 
 class AudioProcessor(AudioProcessorBase):
     """Processes audio frames captured by webrtc_streamer."""
