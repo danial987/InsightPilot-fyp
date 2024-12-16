@@ -8,6 +8,7 @@ import os
 import tempfile
 import requests
 import shutil
+import zipfile
 
 def load_css():
     """Load custom CSS to style the interface."""
@@ -37,11 +38,7 @@ with st.spinner("Loading Please Wait ..."):
     
             class DatasetUploadManager:
                 def __init__(self):
-                    self.dataset_db = Dataset()
-            
-
-
-    
+                    self.dataset_db = Dataset()    
             
                 def categorize_by_time(self, datasets):
                     today = datetime.datetime.now().date()
@@ -498,26 +495,47 @@ with st.spinner("Loading Please Wait ..."):
                     else:
                         st.write("No datasets found.")
             
+
                 def create_download_link(self, dataset_ref):
                     with tempfile.TemporaryDirectory() as temp_dir:
+                        # Download the dataset files into a temporary directory
                         self.kaggle_api.dataset_download_files(dataset_ref, path=temp_dir, unzip=True)
+                
+                        # Check if the downloaded content is a single file or multiple files in a directory
                         files = os.listdir(temp_dir)
-            
-                        if files:
-                            original_file = files[0]
-                            file_path = os.path.join(temp_dir, original_file)
-            
-                            with open(file_path, 'rb') as f:
-                                file_data = f.read()
-            
+                
+                        if len(files) == 1:  # If there's only one file, return its content
+                            file_path = os.path.join(temp_dir, files[0])
+                            if os.path.isfile(file_path):  # Ensure it's a file, not a directory
+                                with open(file_path, 'rb') as f:
+                                    file_data = f.read()
+                
+                                return {
+                                    "data": file_data,
+                                    "file_name": files[0],
+                                    "mime": "application/octet-stream"
+                                }
+                            else:
+                                st.error("Expected a file but found a directory.")
+                        elif len(files) > 1:  # If there are multiple files, zip them
+                            zip_file_path = os.path.join(temp_dir, f"{dataset_ref.replace('/', '_')}.zip")
+                            with zipfile.ZipFile(zip_file_path, 'w') as zipf:
+                                for file_name in files:
+                                    file_path = os.path.join(temp_dir, file_name)
+                                    zipf.write(file_path, arcname=file_name)
+                
+                            with open(zip_file_path, 'rb') as f:
+                                zip_data = f.read()
+                
                             return {
-                                "data": file_data,
-                                "file_name": original_file,  
-                                "mime": "application/octet-stream"
+                                "data": zip_data,
+                                "file_name": f"{dataset_ref.replace('/', '_')}.zip",
+                                "mime": "application/zip"
                             }
-            
-                    st.error("No files found for download.")
-                    return None
+                        else:
+                            st.error("No files were found in the dataset.")
+                            return None
+                
             
             search_app = DatasetSearch()
             search_app.dataset_search_page()
