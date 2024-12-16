@@ -1,11 +1,17 @@
-import speech_recognition as sr
+
+
+from streamlit_webrtc import webrtc_streamer, AudioProcessorBase, WebRtcMode
+import queue
 import io
-import pandas as pd
-import openai
-import uuid
-import streamlit as st
-import sounddevice as sd
-import numpy as np
+import soundfile as sf
+
+class AudioProcessor(AudioProcessorBase):
+    def __init__(self):
+        self.audio_queue = queue.Queue()
+
+    def recv(self, frame):
+        self.audio_queue.put(frame.to_ndarray().flatten())
+        return frame
 
 # openai.api_key = ''
 openai.api_key = st.secrets["OPENAI_API_KEY"]
@@ -14,7 +20,7 @@ class Chatbot:
     def __init__(self):
         """Initialize the chatbot, setting up session state and chat history."""
         self.initialize_session()
-        self.recognizer = sr.Recognizer() 
+        self.recognizer = sr.Recognizer()
 
 
     def initialize_session(self):
@@ -141,46 +147,56 @@ class Chatbot:
 
 
     def record_audio(self):
-        """Record audio and return the transcribed text."""
-        try:
-            st.info("Recording... Please speak.")
-            duration = 5  # Record for 5 seconds
-            samplerate = 44100  # Sample rate for audio recording
-            audio = sd.rec(int(duration * samplerate), samplerate=samplerate, channels=1, dtype='int16')
-            sd.wait()  # Wait until recording is finished
+        """Record audio using browser-based audio recording and return the transcribed text."""
+        st.info("Click the START button below to begin recording.")
 
-            st.success("Recording completed! Transcribing...")
-            audio_data = np.frombuffer(audio, dtype='int16')
+        audio_processor = webrtc_streamer(
+            key="speech_recorder",
+            mode=WebRtcMode.SENDRECV,
+            audio_processor_factory=AudioProcessor,
+            media_stream_constraints={"audio": True, "video": False},
+        )
 
-            # Convert audio to a WAV file-like object for transcription
-            with io.BytesIO() as wav_buffer:
-                import wave
-                with wave.open(wav_buffer, 'wb') as wav_file:
-                    wav_file.setnchannels(1)
-                    wav_file.setsampwidth(2)  # Sample width for 'int16'
-                    wav_file.setframerate(samplerate)
-                    wav_file.writeframes(audio_data.tobytes())
-                wav_buffer.seek(0)
-
-                # Use Google Web Speech API to transcribe the audio
-                audio = sr.AudioFile(wav_buffer)
-                with audio as source:
-                    audio_data = self.recognizer.record(source)
-                try:
-                    user_input = self.recognizer.recognize_google(audio_data)
-                    return user_input
-                except sr.UnknownValueError:
-                    st.error("Sorry, I could not understand the audio.")
-                    return None
-                except sr.RequestError:
-                    st.error("There was an error with the speech recognition service.")
-                    return None
-
-        except Exception as e:
-            st.error(f"An error occurred during recording: {str(e)}")
+        if not audio_processor or not audio_processor.audio_queue:
+            st.warning("Waiting for audio...")
             return None
 
+        st.info("Recording... Speak now!")
+        audio_data = []
+        try:
+            for _ in range(100):  # Adjust duration of recording as needed
+                audio_chunk = audio_processor.audio_queue.get(timeout=1)
+                audio_data.extend(audio_chunk)
+        except queue.Empty:
+            pass
 
+        if audio_data:
+            # Convert audio data to WAV format
+            wav_buffer = io.BytesIO()
+            with sf.SoundFile(
+                wav_buffer, mode='w', samplerate=16000, channels=1, format='WAV'
+            ) as wav_file:
+                wav_file.write(audio_data)
+            wav_buffer.seek(0)
+
+            # Transcribe audio with SpeechRecognition
+            audio = sr.AudioFile(wav_buffer)
+            with audio as source:
+                audio_data = self.recognizer.record(source)
+            try:
+                user_input = self.recognizer.recognize_google(audio_data)
+                return user_input
+            except sr.UnknownValueError:
+                st.error("Sorry, I could not understand the audio.")
+                return None
+            except sr.RequestError:
+                st.error("There was an error with the speech recognition service.")
+                return None
+
+        st.warning("No audio detected. Please try again.")
+        return None
+
+    # Other methods remain unchanged...
 
     def run(self):
         """Run the chatbot, handling user input and generating responses."""
