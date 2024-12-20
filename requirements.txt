@@ -15,8 +15,4 @@ kaggle==1.6.17
 openai==0.28.0
 pytest-mock
 pytest
-SpeechRecognition
-streamlit-antd-components
-soundfile
-sounddevice
-pipwin
+
